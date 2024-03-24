@@ -58,22 +58,99 @@ export default function HomePage() {
       setBalance((await atm.getBalance()).toNumber());
     }
   }
+  const [transactionDetails, setTransactionDetails] = useState({
+    time: "",
+    type: "",
+    amount: 0,
+  });
 
-  const deposit = async() => {
+  const [convertedUSD, setConvertedUSD] = useState(0);
+  const [convertedINR, setConvertedINR] = useState(0);
+
+  const convertToUSD = async () => {
     if (atm) {
+      try {
+        console.log("Calling cvt2INR function");
+        const convertedAmount = await atm.cvt2USD();
+        console.log("Converted Amount:", convertedAmount.toNumber());
+        setConvertedUSD(convertedAmount.toNumber());
+      } catch (error) {
+        console.error("Error converting to USD:", error);
+      }
+    }
+  };
+  
+  const convertToINR = async () => {
+    if (atm) {
+      try {
+        console.log("Calling cvt2INR function");
+        const convertedAmount = await atm.cvt2INR();
+        console.log("Converted Amount:", convertedAmount.toNumber());
+        setConvertedINR(convertedAmount.toNumber());
+      } catch (error) {
+        console.error("Error converting to INR:", error);
+      }
+    }
+  };
+  
+
+
+  const deposit = async () => {
+    if (atm ) {
       let tx = await atm.deposit(1);
-      await tx.wait()
+      await tx.wait();
       getBalance();
+      setTransactionDetails({
+        time: new Date().toLocaleString(),
+        type: "Deposit",
+        amount: 1,
+      });
     }
-  }
+  };
+  
 
-  const withdraw = async() => {
-    if (atm) {
+  
+  const withdraw = async () => {
+    if (atm ) {
       let tx = await atm.withdraw(1);
-      await tx.wait()
+      await tx.wait();
       getBalance();
+      setTransactionDetails({
+        time: new Date().toLocaleString(),
+        type: "Withdrawal",
+        amount: 1,
+      });
     }
-  }
+  };
+
+  const withdraw2 = async () => {
+    if (atm && transactionAmount > 0) {
+      let tx = await atm.withdraw(transactionAmount);
+      await tx.wait();
+      getBalance();
+      setTransactionDetails({
+        time: new Date().toLocaleString(),
+        type: "Withdrawal",
+        amount: transactionAmount,
+      });
+    }
+  };
+  const deposit2 = async () => {
+    if (atm && transactionAmount > 0) {
+      let tx = await atm.deposit(transactionAmount);
+      await tx.wait();
+      getBalance();
+      setTransactionDetails({
+        time: new Date().toLocaleString(),
+        type: "Deposit",
+        amount: transactionAmount,
+      });
+    }
+  };
+  
+  
+  
+const [transactionAmount, setTransactionAmount] = useState(0);
 
   const initUser = () => {
     // Check to see if user has Metamask
@@ -96,7 +173,25 @@ export default function HomePage() {
         <p>Your Balance: {balance}</p>
         <button onClick={deposit}>Deposit 1 ETH</button>
         <button onClick={withdraw}>Withdraw 1 ETH</button>
+        <br />
+        <button onClick={deposit2}>Deposit amt of ETH</button>
+        <button onClick={withdraw2}>Withdraw amt of ETH</button>
+        
+      <input
+        type="number"
+        placeholder="Enter amount"
+        value={transactionAmount}
+        onChange={(e) => setTransactionAmount(e.target.value)}
+      />
+      <button onClick={convertToUSD}>Convert to USD</button>
+      <button onClick={convertToINR}>Convert to INR</button>
+      <p>Converted Amount (USD): {convertedUSD}</p>
+      <p>Converted Amount (INR): {convertedINR}</p>
+      <p>Transaction Time: {transactionDetails.time}</p>
+      <p>Transaction Type: {transactionDetails.type}</p>
+      <p>Transaction Amount: {transactionDetails.amount} ETH</p>
       </div>
+      
     )
   }
 
@@ -108,10 +203,19 @@ export default function HomePage() {
       {initUser()}
       <style jsx>{`
         .container {
-          text-align: center
+          text-align:left;
+          background-image: url('https://images.pexels.com/photos/696644/pexels-photo-696644.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
+          background-size: cover;
+          background-position: center;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: center;
+          
         }
-      `}
-      </style>
+       
+      `}</style>
     </main>
   )
 }
